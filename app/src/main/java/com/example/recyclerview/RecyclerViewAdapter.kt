@@ -1,12 +1,13 @@
 package com.example.recyclerview
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.item_row.view.*
 
-class RecyclerViewAdapter(private val colors : ArrayList<String>) : RecyclerView.Adapter<RecyclerViewAdapter.ItemViewHolder>(){
+class RecyclerViewAdapter(private val items : ArrayList<String>) : RecyclerView.Adapter<RecyclerViewAdapter.ItemViewHolder>(){
     class ItemViewHolder (itemView: View) : RecyclerView.ViewHolder(itemView)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
@@ -16,13 +17,22 @@ class RecyclerViewAdapter(private val colors : ArrayList<String>) : RecyclerView
     }
 
     override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
-        val color = colors[position]
+        val item = items[position]
         holder.itemView.apply {
-            tvColor.text = color
+            tvColor.text = item
+            if(item.startsWith("Found")){
+                tvColor.setTextColor(Color.GREEN)
+            }else if(item.startsWith("No")||item.startsWith("Wrong")){
+                tvColor.setTextColor(Color.RED)
+            }
+            else{
+                tvColor.setTextColor(Color.BLACK)
+            }
         }
+
     }
 
     override fun getItemCount(): Int {
-        return colors.size
+        return items.size
     }
 }
