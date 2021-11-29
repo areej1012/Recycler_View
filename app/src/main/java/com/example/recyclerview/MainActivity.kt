@@ -1,12 +1,15 @@
 package com.example.recyclerview
 
+import android.content.Context
 import android.content.DialogInterface
+import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.provider.CalendarContract
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -28,12 +31,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var itemsAapter: RecyclerViewAdapter
     private lateinit var tvphrase: TextView
     private lateinit var tvletter: TextView
+    private lateinit var tvScore: TextView
     private val myAnswerDictionary = mutableMapOf<Int, Char>()
     private var guessed = 10
-    private var phrase = "This is a funny game"
+    private var phrase = "this is a funny game"
     private var answer = ""
     private var guessedLetters = ""
     private var guessPhrase = true
+    private lateinit var sharedPreferences: SharedPreferences
+    private var highScore = 0
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -44,7 +50,7 @@ class MainActivity : AppCompatActivity() {
         lymain = findViewById(R.id.lyMain)
         tvletter = findViewById(R.id.tvLetter)
         tvphrase = findViewById(R.id.tvPhrase)
-
+        tvScore = findViewById(R.id.tvHScore)
         for (i in phrase.indices) {
             if (phrase[i] == ' ') {
                 myAnswerDictionary[i] = ' '
@@ -55,6 +61,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        sharedPreferences = this.getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE)
+        tvScore.text ="High Score: ${sharedPreferences.getInt("hScore",0).toString()}"
         tvphrase.text = "Phrase: $answer"
         tvletter.text = "Guessed letter:"
         //set Adapter
@@ -75,23 +83,25 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    override fun onSaveInstanceState(outState: Bundle, outPersistentState: PersistableBundle) {
-        super.onSaveInstanceState(outState, outPersistentState)
-
+    fun score(){
+        val score = guessed
+        if(score>= highScore){
+            highScore = score
+            with(sharedPreferences.edit()){
+                putInt("hScore",highScore)
+                apply()
+            }
+        }
     }
-
-    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        super.onRestoreInstanceState(savedInstanceState)
-
-    }
-
     private fun additem() {
-        val text = inputUser.text.toString()
+        val text = inputUser.text.trim().toString()
         if (guessPhrase) {
-            inputUser.clearFocus()
-            inputUser.hint = "Guess the full phrase"
-            if (text.equals(phrase.toLowerCase())) {
+            Log.e("text","${text.toLowerCase()}")
+            Log.e("phre","${phrase.toLowerCase()}")
+            Log.e("add","${text == phrase}")
+            if (text.toLowerCase().equals(phrase.toLowerCase())) {
                 disableEntry()
+                score()
                 showAlert("You win!! \n Do want play again?")
             } else {
                 guessed--
@@ -144,6 +154,13 @@ class MainActivity : AppCompatActivity() {
         }
         for (i in myAnswerDictionary) {
             answer += myAnswerDictionary[i.key]
+        }
+        Log.e("answer","$answer")
+        Log.e("letter b","${answer.toLowerCase().equals(phrase.toLowerCase())}")
+        if(phrase.toLowerCase().equals(answer.toLowerCase())){
+            disableEntry()
+            score()
+            showAlert("You win!\n\nPlay again?")
         }
         inputUser.text.clear()
         inputUser.clearFocus()
